@@ -34,8 +34,10 @@ public class CreateTaskForm : Form
     {
         Text = "Create Task";
         StartPosition = FormStartPosition.CenterParent;
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimumSize = new Size(540, 420);
+        AutoScaleMode = AutoScaleMode.Dpi;
         BackColor = Color.FromArgb(245, 248, 252);
         Width = 540;
         Height = 420;
@@ -48,6 +50,7 @@ public class CreateTaskForm : Form
 
         _txtTitle.Location = new Point(170, 30);
         _txtTitle.Width = 320;
+        _txtTitle.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         Label lblDescription = new Label();
         lblDescription.Text = "Description:";
@@ -59,6 +62,7 @@ public class CreateTaskForm : Form
         _txtDescription.Width = 320;
         _txtDescription.Height = 90;
         _txtDescription.Multiline = true;
+        _txtDescription.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         Label lblStatus = new Label();
         lblStatus.Text = "Status:";
@@ -69,6 +73,7 @@ public class CreateTaskForm : Form
         _cboStatus.Location = new Point(170, 200);
         _cboStatus.Width = 320;
         _cboStatus.DropDownStyle = ComboBoxStyle.DropDownList;
+        _cboStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         Label lblAssignee = new Label();
         lblAssignee.Text = "Assign Employee:";
@@ -79,6 +84,7 @@ public class CreateTaskForm : Form
         _cboAssignee.Location = new Point(170, 255);
         _cboAssignee.Width = 320;
         _cboAssignee.DropDownStyle = ComboBoxStyle.DropDownList;
+        _cboAssignee.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         _btnCreate.Text = "Create Task";
         _btnCreate.Width = 140;
@@ -87,6 +93,7 @@ public class CreateTaskForm : Form
         _btnCreate.BackColor = Color.FromArgb(31, 78, 121);
         _btnCreate.ForeColor = Color.White;
         _btnCreate.FlatStyle = FlatStyle.Flat;
+        _btnCreate.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
         _btnCreate.Click += BtnCreate_Click;
 
         Controls.Add(lblTitle);

@@ -27,6 +27,7 @@ public class ProjectListForm : Form
     private readonly Button _btnUpdateStatus;
     private readonly Button _btnCreateTask;
     private readonly ComboBox _cboProjectStatus;
+    private readonly Label _lblProjectStatus;
     private readonly Label _lblTaskSection;
 
     public ProjectListForm(ProjectController projectController)
@@ -58,6 +59,7 @@ public class ProjectListForm : Form
         _btnUpdateStatus = new Button();
         _btnCreateTask = new Button();
         _cboProjectStatus = new ComboBox();
+        _lblProjectStatus = new Label();
         _lblTaskSection = new Label();
 
         InitializeForm();
@@ -77,14 +79,18 @@ public class ProjectListForm : Form
     {
         Text = "Project List";
         StartPosition = FormStartPosition.CenterParent;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimumSize = new Size(1120, 720);
+        AutoScaleMode = AutoScaleMode.Dpi;
+        AutoScroll = true;
         Width = 1260;
         Height = 720;
         BackColor = Color.FromArgb(245, 248, 252);
 
         Panel headerPanel = new Panel();
         headerPanel.BackColor = Color.FromArgb(31, 78, 121);
-        headerPanel.Location = new Point(0, 0);
-        headerPanel.Width = 1260;
+        headerPanel.Dock = DockStyle.Top;
         headerPanel.Height = 72;
 
         Label lblHeader = new Label();
@@ -101,6 +107,7 @@ public class ProjectListForm : Form
         _groupCreateProject.Width = 1200;
         _groupCreateProject.Height = 185;
         _groupCreateProject.BackColor = Color.FromArgb(241, 247, 252);
+        _groupCreateProject.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         Label lblProjectName = new Label();
         lblProjectName.Text = "Name:";
@@ -110,6 +117,7 @@ public class ProjectListForm : Form
 
         _txtProjectName.Location = new Point(95, 29);
         _txtProjectName.Width = 300;
+        _txtProjectName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         Label lblProjectDescription = new Label();
         lblProjectDescription.Text = "Description:";
@@ -121,6 +129,7 @@ public class ProjectListForm : Form
         _txtProjectDescription.Width = 300;
         _txtProjectDescription.Height = 72;
         _txtProjectDescription.Multiline = true;
+        _txtProjectDescription.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         Label lblStart = new Label();
         lblStart.Text = "Start:";
@@ -173,6 +182,7 @@ public class ProjectListForm : Form
         _chkInvolvedEmployees.Width = 330;
         _chkInvolvedEmployees.Height = 105;
         _chkInvolvedEmployees.CheckOnClick = true;
+        _chkInvolvedEmployees.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         _btnSelectAllEmployees.Text = "Select All";
         _btnSelectAllEmployees.Width = 92;
@@ -180,6 +190,7 @@ public class ProjectListForm : Form
         _btnSelectAllEmployees.Location = new Point(1048, 53);
         _btnSelectAllEmployees.BackColor = Color.White;
         _btnSelectAllEmployees.FlatStyle = FlatStyle.Flat;
+        _btnSelectAllEmployees.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnSelectAllEmployees.Click += BtnSelectAllEmployees_Click;
 
         _btnClearEmployees.Text = "Clear";
@@ -188,6 +199,7 @@ public class ProjectListForm : Form
         _btnClearEmployees.Location = new Point(1048, 87);
         _btnClearEmployees.BackColor = Color.White;
         _btnClearEmployees.FlatStyle = FlatStyle.Flat;
+        _btnClearEmployees.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnClearEmployees.Click += BtnClearEmployees_Click;
 
         _btnCreateProject.Text = "Create Project";
@@ -197,6 +209,7 @@ public class ProjectListForm : Form
         _btnCreateProject.BackColor = Color.FromArgb(46, 125, 50);
         _btnCreateProject.ForeColor = Color.White;
         _btnCreateProject.FlatStyle = FlatStyle.Flat;
+        _btnCreateProject.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnCreateProject.Click += BtnCreateProject_Click;
 
         _groupCreateProject.Controls.Add(lblProjectName);
@@ -228,6 +241,7 @@ public class ProjectListForm : Form
         _gridProjects.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         _gridProjects.RowHeadersVisible = false;
         _gridProjects.BackgroundColor = Color.White;
+        _gridProjects.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         _gridProjects.SelectionChanged += GridProjects_SelectionChanged;
 
         DataGridViewTextBoxColumn colId = new DataGridViewTextBoxColumn();
@@ -270,15 +284,16 @@ public class ProjectListForm : Form
         colTaskCount.HeaderText = "Tasks";
         _gridProjects.Columns.Add(colTaskCount);
 
-        Label lblStatus = new Label();
-        lblStatus.Text = "Update Status:";
-        lblStatus.AutoSize = true;
-        lblStatus.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-        lblStatus.Location = new Point(20, 490);
+        _lblProjectStatus.Text = "Update Status:";
+        _lblProjectStatus.AutoSize = true;
+        _lblProjectStatus.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+        _lblProjectStatus.Location = new Point(20, 490);
+        _lblProjectStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 
         _cboProjectStatus.Location = new Point(130, 486);
         _cboProjectStatus.Width = 190;
         _cboProjectStatus.DropDownStyle = ComboBoxStyle.DropDownList;
+        _cboProjectStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 
         _btnUpdateStatus.Text = "Apply Status";
         _btnUpdateStatus.Width = 120;
@@ -287,6 +302,7 @@ public class ProjectListForm : Form
         _btnUpdateStatus.BackColor = Color.FromArgb(31, 78, 121);
         _btnUpdateStatus.ForeColor = Color.White;
         _btnUpdateStatus.FlatStyle = FlatStyle.Flat;
+        _btnUpdateStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
         _btnUpdateStatus.Click += BtnUpdateStatus_Click;
 
         _btnCreateTask.Text = "Create Task + Assign";
@@ -296,6 +312,7 @@ public class ProjectListForm : Form
         _btnCreateTask.BackColor = Color.FromArgb(46, 125, 50);
         _btnCreateTask.ForeColor = Color.White;
         _btnCreateTask.FlatStyle = FlatStyle.Flat;
+        _btnCreateTask.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnCreateTask.Click += BtnCreateTask_Click;
 
         _btnRefresh.Text = "Refresh";
@@ -304,6 +321,7 @@ public class ProjectListForm : Form
         _btnRefresh.Location = new Point(960, 483);
         _btnRefresh.BackColor = Color.White;
         _btnRefresh.FlatStyle = FlatStyle.Flat;
+        _btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnRefresh.Click += BtnRefresh_Click;
 
         _btnDelete.Text = "Delete";
@@ -313,12 +331,14 @@ public class ProjectListForm : Form
         _btnDelete.BackColor = Color.FromArgb(183, 28, 28);
         _btnDelete.ForeColor = Color.White;
         _btnDelete.FlatStyle = FlatStyle.Flat;
+        _btnDelete.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnDelete.Click += BtnDelete_Click;
 
         _lblTaskSection.Text = "Tasks (select a project to view tasks)";
         _lblTaskSection.AutoSize = true;
         _lblTaskSection.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
         _lblTaskSection.Location = new Point(20, 534);
+        _lblTaskSection.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 
         _gridTasks.Location = new Point(20, 562);
         _gridTasks.Width = 1200;
@@ -330,6 +350,7 @@ public class ProjectListForm : Form
         _gridTasks.RowHeadersVisible = false;
         _gridTasks.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         _gridTasks.BackgroundColor = Color.White;
+        _gridTasks.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
         DataGridViewTextBoxColumn taskId = new DataGridViewTextBoxColumn();
         taskId.Name = "TaskId";
@@ -359,7 +380,7 @@ public class ProjectListForm : Form
         Controls.Add(headerPanel);
         Controls.Add(_groupCreateProject);
         Controls.Add(_gridProjects);
-        Controls.Add(lblStatus);
+        Controls.Add(_lblProjectStatus);
         Controls.Add(_cboProjectStatus);
         Controls.Add(_btnUpdateStatus);
         Controls.Add(_btnCreateTask);
@@ -367,6 +388,71 @@ public class ProjectListForm : Form
         Controls.Add(_btnDelete);
         Controls.Add(_lblTaskSection);
         Controls.Add(_gridTasks);
+
+        Resize += ProjectListForm_Resize;
+        ApplyResponsiveLayout();
+    }
+
+    private void ProjectListForm_Resize(object? sender, EventArgs e)
+    {
+        ApplyResponsiveLayout();
+    }
+
+    private void ApplyResponsiveLayout()
+    {
+        int sidePadding = 20;
+        int spacing = 12;
+        int contentWidth = ClientSize.Width - (sidePadding * 2);
+
+        if (contentWidth < 900)
+        {
+            contentWidth = 900;
+        }
+
+        _groupCreateProject.Width = contentWidth;
+        _gridProjects.Width = contentWidth;
+        _gridTasks.Width = contentWidth;
+
+        _btnCreateProject.Left = _groupCreateProject.ClientSize.Width - _btnCreateProject.Width - 16;
+        _btnSelectAllEmployees.Left = _groupCreateProject.ClientSize.Width - _btnSelectAllEmployees.Width - 16;
+        _btnClearEmployees.Left = _groupCreateProject.ClientSize.Width - _btnClearEmployees.Width - 16;
+
+        _btnDelete.Left = ClientSize.Width - sidePadding - _btnDelete.Width;
+        _btnRefresh.Left = _btnDelete.Left - spacing - _btnRefresh.Width;
+        _btnCreateTask.Left = _btnRefresh.Left - spacing - _btnCreateTask.Width;
+
+        int projectTop = _groupCreateProject.Bottom + spacing;
+        _gridProjects.Top = projectTop;
+
+        int remainingHeight = ClientSize.Height - projectTop - 220;
+        if (remainingHeight < 170)
+        {
+            remainingHeight = 170;
+        }
+
+        _gridProjects.Height = remainingHeight;
+
+        int actionTop = _gridProjects.Bottom + 8;
+        _lblProjectStatus.Top = actionTop + 8;
+        _lblProjectStatus.Left = sidePadding;
+
+        _cboProjectStatus.Left = _lblProjectStatus.Right + 10;
+        _cboProjectStatus.Top = actionTop + 3;
+        _btnUpdateStatus.Top = actionTop;
+        _btnUpdateStatus.Left = _cboProjectStatus.Right + 12;
+        _btnCreateTask.Top = actionTop;
+        _btnRefresh.Top = actionTop;
+        _btnDelete.Top = actionTop;
+
+        _lblTaskSection.Top = actionTop + 48;
+
+        _gridTasks.Top = _lblTaskSection.Bottom + 6;
+        _gridTasks.Height = ClientSize.Height - _gridTasks.Top - 20;
+
+        if (_gridTasks.Height < 100)
+        {
+            _gridTasks.Height = 100;
+        }
     }
 
     private void LoadStatusOptions()

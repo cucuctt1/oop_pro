@@ -36,16 +36,17 @@ public class CreateProjectForm : Form
     {
         Text = "Create Project";
         StartPosition = FormStartPosition.CenterParent;
-        FormBorderStyle = FormBorderStyle.FixedDialog;
-        MaximizeBox = false;
+        FormBorderStyle = FormBorderStyle.Sizable;
+        MaximizeBox = true;
+        MinimumSize = new Size(650, 520);
+        AutoScaleMode = AutoScaleMode.Dpi;
         BackColor = Color.FromArgb(245, 248, 252);
         Width = 650;
         Height = 520;
 
         Panel headerPanel = new Panel();
         headerPanel.BackColor = Color.FromArgb(31, 78, 121);
-        headerPanel.Location = new Point(0, 0);
-        headerPanel.Width = 650;
+        headerPanel.Dock = DockStyle.Top;
         headerPanel.Height = 82;
 
         Label lblHeaderTitle = new Label();
@@ -71,6 +72,7 @@ public class CreateProjectForm : Form
         groupProjectInfo.Location = new Point(20, 98);
         groupProjectInfo.Width = 600;
         groupProjectInfo.Height = 172;
+        groupProjectInfo.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         Label lblName = new Label();
         lblName.Text = "Project Name:";
@@ -80,6 +82,7 @@ public class CreateProjectForm : Form
 
         _txtName.Location = new Point(150, 32);
         _txtName.Width = 430;
+        _txtName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         Label lblDescription = new Label();
         lblDescription.Text = "Description:";
@@ -91,6 +94,7 @@ public class CreateProjectForm : Form
         _txtDescription.Width = 430;
         _txtDescription.Height = 72;
         _txtDescription.Multiline = true;
+        _txtDescription.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         groupProjectInfo.Controls.Add(lblName);
         groupProjectInfo.Controls.Add(_txtName);
@@ -103,6 +107,7 @@ public class CreateProjectForm : Form
         groupPlan.Location = new Point(20, 282);
         groupPlan.Width = 600;
         groupPlan.Height = 178;
+        groupPlan.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         Label lblStartDate = new Label();
         lblStartDate.Text = "Start Date:";
@@ -143,6 +148,7 @@ public class CreateProjectForm : Form
         _cboLeader.Location = new Point(430, 32);
         _cboLeader.Width = 150;
         _cboLeader.DropDownStyle = ComboBoxStyle.DropDownList;
+        _cboLeader.Anchor = AnchorStyles.Top | AnchorStyles.Right;
 
         _btnCreate.Text = "Create Project";
         _btnCreate.Width = 150;
@@ -152,6 +158,7 @@ public class CreateProjectForm : Form
         _btnCreate.ForeColor = Color.White;
         _btnCreate.FlatStyle = FlatStyle.Flat;
         _btnCreate.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+        _btnCreate.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
         _btnCreate.Click += BtnCreate_Click;
 
         groupPlan.Controls.Add(lblStartDate);
