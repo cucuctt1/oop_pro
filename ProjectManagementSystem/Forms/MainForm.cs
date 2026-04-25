@@ -117,7 +117,7 @@ public class MainForm : Form
 
     private void BtnCreateProject_Click(object? sender, EventArgs e)
     {
-        using (ProjectListForm projectListForm = new ProjectListForm(_projectController, true))
+        using (ProjectListForm projectListForm = new ProjectListForm(_projectController, true, false))
         {
             projectListForm.ShowDialog(this);
         }
@@ -125,7 +125,7 @@ public class MainForm : Form
 
     private void BtnViewProjects_Click(object? sender, EventArgs e)
     {
-        using (ProjectListForm projectListForm = new ProjectListForm(_projectController))
+        using (ProjectListForm projectListForm = new ProjectListForm(_projectController, false, true))
         {
             projectListForm.ShowDialog(this);
         }

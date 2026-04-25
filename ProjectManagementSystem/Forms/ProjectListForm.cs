@@ -7,6 +7,12 @@ public class ProjectListForm : Form
 {
     private readonly ProjectController _projectController;
     private readonly bool _focusCreateSection;
+    private readonly bool _viewOnlyMode;
+
+    private readonly GroupBox _groupFilterEmployees;
+    private readonly CheckBox _chkFilterAllEmployees;
+    private readonly CheckedListBox _chkFilterEmployees;
+    private readonly Label _lblFilterDescription;
 
     private readonly GroupBox _groupCreateProject;
     private readonly TextBox _txtProjectName;
@@ -21,24 +27,41 @@ public class ProjectListForm : Form
     private readonly Button _btnClearEmployees;
 
     private readonly DataGridView _gridProjects;
-    private readonly DataGridView _gridTasks;
     private readonly Button _btnDelete;
     private readonly Button _btnRefresh;
     private readonly Button _btnUpdateStatus;
     private readonly Button _btnCreateTask;
     private readonly ComboBox _cboProjectStatus;
     private readonly Label _lblProjectStatus;
+
+    private readonly Label _lblProjectSummary;
+    private readonly TextBox _txtProjectSummary;
+    private readonly Label _lblEmployeeSection;
+    private readonly DataGridView _gridProjectEmployees;
+
     private readonly Label _lblTaskSection;
+    private readonly DataGridView _gridTasks;
 
     public ProjectListForm(ProjectController projectController)
-        : this(projectController, false)
+        : this(projectController, false, false)
     {
     }
 
     public ProjectListForm(ProjectController projectController, bool focusCreateSection)
+        : this(projectController, focusCreateSection, false)
+    {
+    }
+
+    public ProjectListForm(ProjectController projectController, bool focusCreateSection, bool viewOnlyMode)
     {
         _projectController = projectController;
         _focusCreateSection = focusCreateSection;
+        _viewOnlyMode = viewOnlyMode;
+
+        _groupFilterEmployees = new GroupBox();
+        _chkFilterAllEmployees = new CheckBox();
+        _chkFilterEmployees = new CheckedListBox();
+        _lblFilterDescription = new Label();
 
         _groupCreateProject = new GroupBox();
         _txtProjectName = new TextBox();
@@ -53,22 +76,29 @@ public class ProjectListForm : Form
         _btnClearEmployees = new Button();
 
         _gridProjects = new DataGridView();
-        _gridTasks = new DataGridView();
         _btnDelete = new Button();
         _btnRefresh = new Button();
         _btnUpdateStatus = new Button();
         _btnCreateTask = new Button();
         _cboProjectStatus = new ComboBox();
         _lblProjectStatus = new Label();
+
+        _lblProjectSummary = new Label();
+        _txtProjectSummary = new TextBox();
+        _lblEmployeeSection = new Label();
+        _gridProjectEmployees = new DataGridView();
+
         _lblTaskSection = new Label();
+        _gridTasks = new DataGridView();
 
         InitializeForm();
         LoadStatusOptions();
         LoadLeaderOptions();
         LoadEmployeeOptions();
+        LoadFilterEmployees();
         LoadProjectsToGrid();
 
-        if (_focusCreateSection)
+        if (_focusCreateSection && !_viewOnlyMode)
         {
             _txtProjectName.Focus();
             _groupCreateProject.BackColor = Color.FromArgb(234, 244, 252);
@@ -77,7 +107,7 @@ public class ProjectListForm : Form
 
     private void InitializeForm()
     {
-        Text = "Project List";
+        Text = _viewOnlyMode ? "Project Viewer" : "Project Dashboard";
         StartPosition = FormStartPosition.CenterParent;
         FormBorderStyle = FormBorderStyle.Sizable;
         MaximizeBox = true;
@@ -85,7 +115,7 @@ public class ProjectListForm : Form
         AutoScaleMode = AutoScaleMode.Dpi;
         AutoScroll = true;
         Width = 1260;
-        Height = 720;
+        Height = 820;
         BackColor = Color.FromArgb(245, 248, 252);
 
         Panel headerPanel = new Panel();
@@ -94,19 +124,48 @@ public class ProjectListForm : Form
         headerPanel.Height = 72;
 
         Label lblHeader = new Label();
-        lblHeader.Text = "Project Dashboard";
+        lblHeader.Text = _viewOnlyMode ? "Project Viewer Dashboard" : "Project Management Dashboard";
         lblHeader.AutoSize = true;
         lblHeader.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
         lblHeader.ForeColor = Color.White;
         lblHeader.Location = new Point(20, 20);
         headerPanel.Controls.Add(lblHeader);
 
+        _groupFilterEmployees.Text = "Project Filter by Employee";
+        _groupFilterEmployees.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
+        _groupFilterEmployees.BackColor = Color.FromArgb(241, 247, 252);
+        _groupFilterEmployees.Location = new Point(20, 90);
+        _groupFilterEmployees.Width = 1200;
+        _groupFilterEmployees.Height = 110;
+        _groupFilterEmployees.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+        _chkFilterAllEmployees.Text = "All Employees";
+        _chkFilterAllEmployees.AutoSize = true;
+        _chkFilterAllEmployees.Location = new Point(16, 30);
+        _chkFilterAllEmployees.CheckedChanged += ChkFilterAllEmployees_CheckedChanged;
+
+        _lblFilterDescription.Text = "Uncheck All Employees and tick one or many employees to filter related projects.";
+        _lblFilterDescription.AutoSize = true;
+        _lblFilterDescription.Font = new Font("Segoe UI", 8.5F, FontStyle.Regular);
+        _lblFilterDescription.Location = new Point(16, 65);
+
+        _chkFilterEmployees.Location = new Point(220, 22);
+        _chkFilterEmployees.Width = 950;
+        _chkFilterEmployees.Height = 72;
+        _chkFilterEmployees.CheckOnClick = true;
+        _chkFilterEmployees.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        _chkFilterEmployees.ItemCheck += ChkFilterEmployees_ItemCheck;
+
+        _groupFilterEmployees.Controls.Add(_chkFilterAllEmployees);
+        _groupFilterEmployees.Controls.Add(_lblFilterDescription);
+        _groupFilterEmployees.Controls.Add(_chkFilterEmployees);
+
         _groupCreateProject.Text = "Create New Project";
         _groupCreateProject.Font = new Font("Segoe UI", 9.5F, FontStyle.Bold);
-        _groupCreateProject.Location = new Point(20, 90);
+        _groupCreateProject.BackColor = Color.FromArgb(241, 247, 252);
+        _groupCreateProject.Location = new Point(20, 210);
         _groupCreateProject.Width = 1200;
         _groupCreateProject.Height = 185;
-        _groupCreateProject.BackColor = Color.FromArgb(241, 247, 252);
         _groupCreateProject.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
 
         Label lblProjectName = new Label();
@@ -117,7 +176,7 @@ public class ProjectListForm : Form
 
         _txtProjectName.Location = new Point(95, 29);
         _txtProjectName.Width = 300;
-        _txtProjectName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        _txtProjectName.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 
         Label lblProjectDescription = new Label();
         lblProjectDescription.Text = "Description:";
@@ -129,7 +188,7 @@ public class ProjectListForm : Form
         _txtProjectDescription.Width = 300;
         _txtProjectDescription.Height = 72;
         _txtProjectDescription.Multiline = true;
-        _txtProjectDescription.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+        _txtProjectDescription.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 
         Label lblStart = new Label();
         lblStart.Text = "Start:";
@@ -230,9 +289,9 @@ public class ProjectListForm : Form
         _groupCreateProject.Controls.Add(_btnClearEmployees);
         _groupCreateProject.Controls.Add(_btnCreateProject);
 
-        _gridProjects.Location = new Point(20, 288);
+        _gridProjects.Location = new Point(20, 405);
         _gridProjects.Width = 1200;
-        _gridProjects.Height = 190;
+        _gridProjects.Height = 180;
         _gridProjects.AllowUserToAddRows = false;
         _gridProjects.AllowUserToDeleteRows = false;
         _gridProjects.ReadOnly = true;
@@ -287,62 +346,101 @@ public class ProjectListForm : Form
         _lblProjectStatus.Text = "Update Status:";
         _lblProjectStatus.AutoSize = true;
         _lblProjectStatus.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-        _lblProjectStatus.Location = new Point(20, 490);
-        _lblProjectStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+        _lblProjectStatus.Location = new Point(20, 600);
 
-        _cboProjectStatus.Location = new Point(130, 486);
+        _cboProjectStatus.Location = new Point(130, 596);
         _cboProjectStatus.Width = 190;
         _cboProjectStatus.DropDownStyle = ComboBoxStyle.DropDownList;
-        _cboProjectStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 
         _btnUpdateStatus.Text = "Apply Status";
         _btnUpdateStatus.Width = 120;
         _btnUpdateStatus.Height = 32;
-        _btnUpdateStatus.Location = new Point(334, 483);
+        _btnUpdateStatus.Location = new Point(334, 593);
         _btnUpdateStatus.BackColor = Color.FromArgb(31, 78, 121);
         _btnUpdateStatus.ForeColor = Color.White;
         _btnUpdateStatus.FlatStyle = FlatStyle.Flat;
-        _btnUpdateStatus.Anchor = AnchorStyles.Top | AnchorStyles.Left;
         _btnUpdateStatus.Click += BtnUpdateStatus_Click;
 
         _btnCreateTask.Text = "Create Task + Assign";
         _btnCreateTask.Width = 180;
         _btnCreateTask.Height = 32;
-        _btnCreateTask.Location = new Point(470, 483);
+        _btnCreateTask.Location = new Point(470, 593);
         _btnCreateTask.BackColor = Color.FromArgb(46, 125, 50);
         _btnCreateTask.ForeColor = Color.White;
         _btnCreateTask.FlatStyle = FlatStyle.Flat;
-        _btnCreateTask.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnCreateTask.Click += BtnCreateTask_Click;
 
         _btnRefresh.Text = "Refresh";
         _btnRefresh.Width = 120;
         _btnRefresh.Height = 32;
-        _btnRefresh.Location = new Point(960, 483);
+        _btnRefresh.Location = new Point(960, 593);
         _btnRefresh.BackColor = Color.White;
         _btnRefresh.FlatStyle = FlatStyle.Flat;
-        _btnRefresh.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnRefresh.Click += BtnRefresh_Click;
 
         _btnDelete.Text = "Delete";
         _btnDelete.Width = 120;
         _btnDelete.Height = 32;
-        _btnDelete.Location = new Point(1100, 483);
+        _btnDelete.Location = new Point(1100, 593);
         _btnDelete.BackColor = Color.FromArgb(183, 28, 28);
         _btnDelete.ForeColor = Color.White;
         _btnDelete.FlatStyle = FlatStyle.Flat;
-        _btnDelete.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnDelete.Click += BtnDelete_Click;
+
+        _lblProjectSummary.Text = "Selected Project Details";
+        _lblProjectSummary.AutoSize = true;
+        _lblProjectSummary.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+        _lblProjectSummary.Location = new Point(20, 640);
+
+        _txtProjectSummary.Location = new Point(20, 666);
+        _txtProjectSummary.Width = 1200;
+        _txtProjectSummary.Height = 72;
+        _txtProjectSummary.Multiline = true;
+        _txtProjectSummary.ReadOnly = true;
+        _txtProjectSummary.ScrollBars = ScrollBars.Vertical;
+        _txtProjectSummary.BackColor = Color.White;
+        _txtProjectSummary.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+        _lblEmployeeSection.Text = "Employees in Selected Project";
+        _lblEmployeeSection.AutoSize = true;
+        _lblEmployeeSection.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+        _lblEmployeeSection.Location = new Point(20, 746);
+
+        _gridProjectEmployees.Location = new Point(20, 772);
+        _gridProjectEmployees.Width = 1200;
+        _gridProjectEmployees.Height = 90;
+        _gridProjectEmployees.AllowUserToAddRows = false;
+        _gridProjectEmployees.AllowUserToDeleteRows = false;
+        _gridProjectEmployees.ReadOnly = true;
+        _gridProjectEmployees.MultiSelect = false;
+        _gridProjectEmployees.RowHeadersVisible = false;
+        _gridProjectEmployees.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        _gridProjectEmployees.BackgroundColor = Color.White;
+        _gridProjectEmployees.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+
+        DataGridViewTextBoxColumn empId = new DataGridViewTextBoxColumn();
+        empId.Name = "EmployeeId";
+        empId.HeaderText = "Employee ID";
+        _gridProjectEmployees.Columns.Add(empId);
+
+        DataGridViewTextBoxColumn empName = new DataGridViewTextBoxColumn();
+        empName.Name = "EmployeeName";
+        empName.HeaderText = "Name";
+        _gridProjectEmployees.Columns.Add(empName);
+
+        DataGridViewTextBoxColumn empRole = new DataGridViewTextBoxColumn();
+        empRole.Name = "EmployeeRole";
+        empRole.HeaderText = "Role";
+        _gridProjectEmployees.Columns.Add(empRole);
 
         _lblTaskSection.Text = "Tasks (select a project to view tasks)";
         _lblTaskSection.AutoSize = true;
         _lblTaskSection.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
-        _lblTaskSection.Location = new Point(20, 534);
-        _lblTaskSection.Anchor = AnchorStyles.Top | AnchorStyles.Left;
+        _lblTaskSection.Location = new Point(20, 872);
 
-        _gridTasks.Location = new Point(20, 562);
+        _gridTasks.Location = new Point(20, 898);
         _gridTasks.Width = 1200;
-        _gridTasks.Height = 120;
+        _gridTasks.Height = 130;
         _gridTasks.AllowUserToAddRows = false;
         _gridTasks.AllowUserToDeleteRows = false;
         _gridTasks.ReadOnly = true;
@@ -378,6 +476,7 @@ public class ProjectListForm : Form
         _gridTasks.Columns.Add(taskAssignee);
 
         Controls.Add(headerPanel);
+        Controls.Add(_groupFilterEmployees);
         Controls.Add(_groupCreateProject);
         Controls.Add(_gridProjects);
         Controls.Add(_lblProjectStatus);
@@ -386,8 +485,22 @@ public class ProjectListForm : Form
         Controls.Add(_btnCreateTask);
         Controls.Add(_btnRefresh);
         Controls.Add(_btnDelete);
+        Controls.Add(_lblProjectSummary);
+        Controls.Add(_txtProjectSummary);
+        Controls.Add(_lblEmployeeSection);
+        Controls.Add(_gridProjectEmployees);
         Controls.Add(_lblTaskSection);
         Controls.Add(_gridTasks);
+
+        if (_viewOnlyMode)
+        {
+            _groupCreateProject.Visible = false;
+            _lblProjectStatus.Visible = false;
+            _cboProjectStatus.Visible = false;
+            _btnUpdateStatus.Visible = false;
+            _btnCreateTask.Visible = false;
+            _btnDelete.Visible = false;
+        }
 
         Resize += ProjectListForm_Resize;
         ApplyResponsiveLayout();
@@ -401,57 +514,230 @@ public class ProjectListForm : Form
     private void ApplyResponsiveLayout()
     {
         int sidePadding = 20;
-        int spacing = 12;
+        int spacing = 10;
         int contentWidth = ClientSize.Width - (sidePadding * 2);
-
-        if (contentWidth < 900)
+        if (contentWidth < 760)
         {
-            contentWidth = 900;
+            contentWidth = 760;
+        }
+        int contentRight = sidePadding + contentWidth;
+
+        bool compactVertical = ClientSize.Height < 760;
+        int summaryHeight = compactVertical ? 60 : 72;
+        int projectEmployeesHeight = compactVertical ? 72 : 90;
+        int minTaskHeight = compactVertical ? 90 : 110;
+        int minProjectGridHeight = compactVertical ? 100 : 150;
+
+        _groupFilterEmployees.Left = sidePadding;
+        _groupFilterEmployees.Top = 90;
+        _groupFilterEmployees.Width = contentWidth;
+
+        _chkFilterAllEmployees.Left = 16;
+        _chkFilterAllEmployees.Top = 30;
+
+        int filterListTop = 24;
+        int filterListHeight = Math.Max(60, (_chkFilterEmployees.ItemHeight * 2) + 12);
+        int filterListLeft = 220;
+        int filterListWidth = _groupFilterEmployees.ClientSize.Width - filterListLeft - 16;
+        if (filterListWidth < 260)
+        {
+            filterListWidth = 260;
+            filterListLeft = _groupFilterEmployees.ClientSize.Width - filterListWidth - 16;
+            if (filterListLeft < 16)
+            {
+                filterListLeft = 16;
+            }
         }
 
-        _groupCreateProject.Width = contentWidth;
+        _chkFilterEmployees.Left = filterListLeft;
+        _chkFilterEmployees.Top = filterListTop;
+        _chkFilterEmployees.Width = filterListWidth;
+        _chkFilterEmployees.Height = filterListHeight;
+
+        _lblFilterDescription.Left = 16;
+        _lblFilterDescription.Top = _chkFilterEmployees.Bottom + 8;
+        _lblFilterDescription.MaximumSize = new Size(_groupFilterEmployees.ClientSize.Width - 32, 0);
+
+        _groupFilterEmployees.Height = _lblFilterDescription.Bottom + 12;
+
+        int contentTopAfterCreate;
+
+        if (_viewOnlyMode)
+        {
+            _groupCreateProject.Visible = false;
+            contentTopAfterCreate = _groupFilterEmployees.Bottom + spacing;
+        }
+        else
+        {
+            _groupCreateProject.Visible = true;
+            _groupCreateProject.Left = sidePadding;
+            _groupCreateProject.Top = _groupFilterEmployees.Bottom + spacing;
+            _groupCreateProject.Width = contentWidth;
+
+            int createGroupHeight = compactVertical ? 205 : 220;
+            _groupCreateProject.Height = createGroupHeight;
+
+            int createRightPadding = 16;
+            int createButtonGap = 10;
+            int employeeListLeft = 705;
+            int employeeListTop = 53;
+            int employeeButtonsWidth = _btnSelectAllEmployees.Width;
+            int employeeListWidth = _groupCreateProject.ClientSize.Width - employeeListLeft - createRightPadding - createButtonGap - employeeButtonsWidth;
+            int minEmployeeListLeft = _cboCreateLeader.Right + 14;
+
+            if (employeeListWidth < 180)
+            {
+                employeeListWidth = 180;
+                employeeListLeft = _groupCreateProject.ClientSize.Width - createRightPadding - createButtonGap - employeeButtonsWidth - employeeListWidth;
+                if (employeeListLeft < minEmployeeListLeft)
+                {
+                    employeeListLeft = minEmployeeListLeft;
+                    employeeListWidth = _groupCreateProject.ClientSize.Width - employeeListLeft - createRightPadding - createButtonGap - employeeButtonsWidth;
+                }
+            }
+
+            if (employeeListWidth < 120)
+            {
+                employeeListWidth = 120;
+            }
+
+            if (employeeListWidth > 420)
+            {
+                employeeListWidth = 420;
+                employeeListLeft = _groupCreateProject.ClientSize.Width - createRightPadding - createButtonGap - employeeButtonsWidth - employeeListWidth;
+            }
+
+            _chkInvolvedEmployees.Left = employeeListLeft;
+            _chkInvolvedEmployees.Top = employeeListTop;
+            _chkInvolvedEmployees.Width = employeeListWidth;
+
+            int buttonsLeft = _chkInvolvedEmployees.Right + createButtonGap;
+            int maxButtonsLeft = _groupCreateProject.ClientSize.Width - createRightPadding - employeeButtonsWidth;
+            if (buttonsLeft > maxButtonsLeft)
+            {
+                int overflow = buttonsLeft - maxButtonsLeft;
+                employeeListWidth = _chkInvolvedEmployees.Width - overflow;
+                if (employeeListWidth < 120)
+                {
+                    employeeListWidth = 120;
+                }
+
+                _chkInvolvedEmployees.Width = employeeListWidth;
+                buttonsLeft = _chkInvolvedEmployees.Right + createButtonGap;
+            }
+
+            _btnSelectAllEmployees.Left = buttonsLeft;
+            _btnSelectAllEmployees.Top = employeeListTop;
+
+            _btnClearEmployees.Left = _btnSelectAllEmployees.Left;
+            _btnClearEmployees.Top = _btnSelectAllEmployees.Bottom + 6;
+
+            _btnCreateProject.Top = _groupCreateProject.ClientSize.Height - _btnCreateProject.Height - 10;
+            _btnCreateProject.Left = _groupCreateProject.ClientSize.Width - _btnCreateProject.Width - createRightPadding;
+
+            int employeeListHeight = _btnCreateProject.Top - employeeListTop - 8;
+            if (employeeListHeight < 70)
+            {
+                employeeListHeight = 70;
+            }
+            _chkInvolvedEmployees.Height = employeeListHeight;
+
+            contentTopAfterCreate = _groupCreateProject.Bottom + spacing;
+        }
+
+        _gridProjects.Left = sidePadding;
+        _gridProjects.Top = contentTopAfterCreate;
         _gridProjects.Width = contentWidth;
-        _gridTasks.Width = contentWidth;
 
-        _btnCreateProject.Left = _groupCreateProject.ClientSize.Width - _btnCreateProject.Width - 16;
-        _btnSelectAllEmployees.Left = _groupCreateProject.ClientSize.Width - _btnSelectAllEmployees.Width - 16;
-        _btnClearEmployees.Left = _groupCreateProject.ClientSize.Width - _btnClearEmployees.Width - 16;
+        int detailTopOffsetFromAction = _viewOnlyMode ? 40 : 46;
+        int reservedBelowProjectGrid = 8
+            + detailTopOffsetFromAction
+            + _lblProjectSummary.Height
+            + 6
+            + summaryHeight
+            + 8
+            + _lblEmployeeSection.Height
+            + 6
+            + projectEmployeesHeight
+            + 8
+            + _lblTaskSection.Height
+            + 6
+            + minTaskHeight
+            + 20;
 
-        _btnDelete.Left = ClientSize.Width - sidePadding - _btnDelete.Width;
-        _btnRefresh.Left = _btnDelete.Left - spacing - _btnRefresh.Width;
-        _btnCreateTask.Left = _btnRefresh.Left - spacing - _btnCreateTask.Width;
-
-        int projectTop = _groupCreateProject.Bottom + spacing;
-        _gridProjects.Top = projectTop;
-
-        int remainingHeight = ClientSize.Height - projectTop - 220;
-        if (remainingHeight < 170)
+        int gridProjectHeight = ClientSize.Height - _gridProjects.Top - reservedBelowProjectGrid;
+        if (gridProjectHeight < minProjectGridHeight)
         {
-            remainingHeight = 170;
+            gridProjectHeight = minProjectGridHeight;
         }
-
-        _gridProjects.Height = remainingHeight;
+        _gridProjects.Height = gridProjectHeight;
 
         int actionTop = _gridProjects.Bottom + 8;
-        _lblProjectStatus.Top = actionTop + 8;
-        _lblProjectStatus.Left = sidePadding;
 
-        _cboProjectStatus.Left = _lblProjectStatus.Right + 10;
-        _cboProjectStatus.Top = actionTop + 3;
-        _btnUpdateStatus.Top = actionTop;
-        _btnUpdateStatus.Left = _cboProjectStatus.Right + 12;
-        _btnCreateTask.Top = actionTop;
-        _btnRefresh.Top = actionTop;
-        _btnDelete.Top = actionTop;
+        if (!_viewOnlyMode)
+        {
+            _lblProjectStatus.Left = sidePadding;
+            _lblProjectStatus.Top = actionTop + 8;
 
-        _lblTaskSection.Top = actionTop + 48;
+            _cboProjectStatus.Left = _lblProjectStatus.Right + 10;
+            _cboProjectStatus.Top = actionTop + 4;
 
+            _btnUpdateStatus.Left = _cboProjectStatus.Right + 12;
+            _btnUpdateStatus.Top = actionTop + 2;
+        }
+
+        int right = contentRight;
+
+        if (_btnDelete.Visible)
+        {
+            _btnDelete.Left = right - _btnDelete.Width;
+            _btnDelete.Top = actionTop + 2;
+            right = _btnDelete.Left - spacing;
+        }
+
+        if (_btnRefresh.Visible)
+        {
+            _btnRefresh.Left = right - _btnRefresh.Width;
+            _btnRefresh.Top = actionTop + 2;
+            right = _btnRefresh.Left - spacing;
+        }
+
+        if (_btnCreateTask.Visible)
+        {
+            _btnCreateTask.Left = right - _btnCreateTask.Width;
+            _btnCreateTask.Top = actionTop + 2;
+            right = _btnCreateTask.Left - spacing;
+        }
+
+        int detailTop = actionTop + detailTopOffsetFromAction;
+
+        _lblProjectSummary.Left = sidePadding;
+        _lblProjectSummary.Top = detailTop;
+
+        _txtProjectSummary.Left = sidePadding;
+        _txtProjectSummary.Top = _lblProjectSummary.Bottom + 6;
+        _txtProjectSummary.Width = contentWidth;
+        _txtProjectSummary.Height = summaryHeight;
+
+        _lblEmployeeSection.Left = sidePadding;
+        _lblEmployeeSection.Top = _txtProjectSummary.Bottom + 8;
+
+        _gridProjectEmployees.Left = sidePadding;
+        _gridProjectEmployees.Top = _lblEmployeeSection.Bottom + 6;
+        _gridProjectEmployees.Width = contentWidth;
+        _gridProjectEmployees.Height = projectEmployeesHeight;
+
+        _lblTaskSection.Left = sidePadding;
+        _lblTaskSection.Top = _gridProjectEmployees.Bottom + 8;
+
+        _gridTasks.Left = sidePadding;
         _gridTasks.Top = _lblTaskSection.Bottom + 6;
+        _gridTasks.Width = contentWidth;
         _gridTasks.Height = ClientSize.Height - _gridTasks.Top - 20;
 
-        if (_gridTasks.Height < 100)
+        if (_gridTasks.Height < minTaskHeight)
         {
-            _gridTasks.Height = 100;
+            _gridTasks.Height = minTaskHeight;
         }
     }
 
@@ -507,6 +793,19 @@ public class ProjectListForm : Form
         EnsureLeaderCheckedInEmployeeList();
     }
 
+    private void LoadFilterEmployees()
+    {
+        _chkFilterEmployees.Items.Clear();
+
+        List<Employee> employees = _projectController.GetEmployees();
+        for (int i = 0; i < employees.Count; i++)
+        {
+            _chkFilterEmployees.Items.Add(employees[i], false);
+        }
+
+        _chkFilterAllEmployees.Checked = true;
+    }
+
     private void EnsureLeaderCheckedInEmployeeList()
     {
         if (_cboCreateLeader.SelectedItem == null)
@@ -536,15 +835,80 @@ public class ProjectListForm : Form
         }
     }
 
+    private List<Project> GetFilteredProjects(List<Project> allProjects)
+    {
+        List<Project> filtered = new List<Project>();
+
+        if (_chkFilterAllEmployees.Checked)
+        {
+            for (int i = 0; i < allProjects.Count; i++)
+            {
+                filtered.Add(allProjects[i]);
+            }
+
+            return filtered;
+        }
+
+        List<string> selectedEmployeeIds = new List<string>();
+        for (int i = 0; i < _chkFilterEmployees.CheckedItems.Count; i++)
+        {
+            Employee? employee = _chkFilterEmployees.CheckedItems[i] as Employee;
+            if (employee != null)
+            {
+                selectedEmployeeIds.Add(employee.Id);
+            }
+        }
+
+        if (selectedEmployeeIds.Count == 0)
+        {
+            return filtered;
+        }
+
+        for (int i = 0; i < allProjects.Count; i++)
+        {
+            Project project = allProjects[i];
+            bool match = false;
+
+            if (project.Employees != null)
+            {
+                for (int j = 0; j < project.Employees.Count; j++)
+                {
+                    Employee employee = project.Employees[j];
+                    for (int k = 0; k < selectedEmployeeIds.Count; k++)
+                    {
+                        if (employee.Id == selectedEmployeeIds[k])
+                        {
+                            match = true;
+                            break;
+                        }
+                    }
+
+                    if (match)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (match)
+            {
+                filtered.Add(project);
+            }
+        }
+
+        return filtered;
+    }
+
     private void LoadProjectsToGrid()
     {
         _gridProjects.Rows.Clear();
 
         List<Project> projects = _projectController.GetProjects();
+        List<Project> filteredProjects = GetFilteredProjects(projects);
 
-        for (int i = 0; i < projects.Count; i++)
+        for (int i = 0; i < filteredProjects.Count; i++)
         {
-            Project project = projects[i];
+            Project project = filteredProjects[i];
 
             string leaderInfo = string.Empty;
             if (project.Leader != null)
@@ -573,10 +937,12 @@ public class ProjectListForm : Form
         {
             _gridProjects.Rows[0].Selected = true;
             SyncStatusFromSelectedProject();
+            LoadProjectDetailForSelectedProject();
             LoadTasksForSelectedProject();
         }
         else
         {
+            ClearProjectDetail();
             _gridTasks.Rows.Clear();
             _lblTaskSection.Text = "Tasks (select a project to view tasks)";
         }
@@ -600,29 +966,36 @@ public class ProjectListForm : Form
         return cellValue.ToString() ?? string.Empty;
     }
 
+    private Project? GetProjectById(string projectId)
+    {
+        List<Project> projects = _projectController.GetProjects();
+
+        for (int i = 0; i < projects.Count; i++)
+        {
+            if (projects[i].ProjectId == projectId)
+            {
+                return projects[i];
+            }
+        }
+
+        return null;
+    }
+
     private void SyncStatusFromSelectedProject()
     {
+        if (_viewOnlyMode)
+        {
+            return;
+        }
+
         string projectId = GetSelectedProjectId();
         if (string.IsNullOrWhiteSpace(projectId))
         {
             return;
         }
 
-        List<Project> projects = _projectController.GetProjects();
-        EnumStatus selectedStatus = EnumStatus.Pending;
-        bool found = false;
-
-        for (int i = 0; i < projects.Count; i++)
-        {
-            if (projects[i].ProjectId == projectId)
-            {
-                selectedStatus = projects[i].Status;
-                found = true;
-                break;
-            }
-        }
-
-        if (!found)
+        Project? project = GetProjectById(projectId);
+        if (project == null)
         {
             return;
         }
@@ -633,13 +1006,61 @@ public class ProjectListForm : Form
             if (item != null)
             {
                 EnumStatus status = (EnumStatus)item;
-                if (status == selectedStatus)
+                if (status == project.Status)
                 {
                     _cboProjectStatus.SelectedIndex = i;
                     break;
                 }
             }
         }
+    }
+
+    private void LoadProjectDetailForSelectedProject()
+    {
+        _gridProjectEmployees.Rows.Clear();
+
+        string projectId = GetSelectedProjectId();
+        if (string.IsNullOrWhiteSpace(projectId))
+        {
+            ClearProjectDetail();
+            return;
+        }
+
+        Project? project = GetProjectById(projectId);
+        if (project == null)
+        {
+            ClearProjectDetail();
+            return;
+        }
+
+        string leaderInfo = "N/A";
+        if (project.Leader != null)
+        {
+            leaderInfo = project.Leader.Name + " (" + project.Leader.GetRole() + ")";
+        }
+
+        string summary = "Project ID: " + project.ProjectId + Environment.NewLine
+            + "Project Name: " + project.ProjectName + Environment.NewLine
+            + "Status: " + project.Status + " | Leader: " + leaderInfo + Environment.NewLine
+            + "Timeline: " + project.StartDate.ToShortDateString() + " - " + project.EndDate.ToShortDateString() + Environment.NewLine
+            + "Description: " + project.Description;
+
+        _txtProjectSummary.Text = summary;
+
+        if (project.Employees != null)
+        {
+            for (int i = 0; i < project.Employees.Count; i++)
+            {
+                Employee employee = project.Employees[i];
+                _gridProjectEmployees.Rows.Add(employee.Id, employee.Name, employee.GetRole());
+            }
+        }
+    }
+
+    private void ClearProjectDetail()
+    {
+        _txtProjectSummary.Text = "No project selected.";
+        _gridProjectEmployees.Rows.Clear();
     }
 
     private void LoadTasksForSelectedProject()
@@ -675,6 +1096,38 @@ public class ProjectListForm : Form
         }
     }
 
+    private void ChkFilterAllEmployees_CheckedChanged(object? sender, EventArgs e)
+    {
+        bool isAll = _chkFilterAllEmployees.Checked;
+
+        _chkFilterEmployees.Enabled = !isAll;
+
+        if (isAll)
+        {
+            for (int i = 0; i < _chkFilterEmployees.Items.Count; i++)
+            {
+                _chkFilterEmployees.SetItemChecked(i, false);
+            }
+        }
+
+        LoadProjectsToGrid();
+    }
+
+    private void ChkFilterEmployees_ItemCheck(object? sender, ItemCheckEventArgs e)
+    {
+        if (_chkFilterAllEmployees.Checked)
+        {
+            return;
+        }
+
+        BeginInvoke(new MethodInvoker(TriggerFilterRefresh));
+    }
+
+    private void TriggerFilterRefresh()
+    {
+        LoadProjectsToGrid();
+    }
+
     private void BtnRefresh_Click(object? sender, EventArgs e)
     {
         LoadProjectsToGrid();
@@ -682,6 +1135,12 @@ public class ProjectListForm : Form
 
     private void BtnCreateProject_Click(object? sender, EventArgs e)
     {
+        if (_viewOnlyMode)
+        {
+            MessageBox.Show("View mode does not allow create project.", "Permission", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
         if (_cboCreateStatus.SelectedItem == null)
         {
             MessageBox.Show("Please select project status.", "Validation", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -786,6 +1245,12 @@ public class ProjectListForm : Form
 
     private void BtnUpdateStatus_Click(object? sender, EventArgs e)
     {
+        if (_viewOnlyMode)
+        {
+            MessageBox.Show("View mode does not allow status update.", "Permission", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
         string projectId = GetSelectedProjectId();
         if (string.IsNullOrWhiteSpace(projectId))
         {
@@ -816,6 +1281,12 @@ public class ProjectListForm : Form
 
     private void BtnCreateTask_Click(object? sender, EventArgs e)
     {
+        if (_viewOnlyMode)
+        {
+            MessageBox.Show("View mode does not allow creating task.", "Permission", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
         string projectId = GetSelectedProjectId();
         if (string.IsNullOrWhiteSpace(projectId))
         {
@@ -836,11 +1307,18 @@ public class ProjectListForm : Form
     private void GridProjects_SelectionChanged(object? sender, EventArgs e)
     {
         SyncStatusFromSelectedProject();
+        LoadProjectDetailForSelectedProject();
         LoadTasksForSelectedProject();
     }
 
     private void BtnDelete_Click(object? sender, EventArgs e)
     {
+        if (_viewOnlyMode)
+        {
+            MessageBox.Show("View mode does not allow deleting project.", "Permission", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
         string projectId = GetSelectedProjectId();
         if (string.IsNullOrWhiteSpace(projectId))
         {
