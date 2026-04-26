@@ -1,4 +1,3 @@
-using System.Text.Json;
 using ProjectManagementSystem.Models;
 
 namespace ProjectManagementSystem.Data;
@@ -9,13 +8,17 @@ public sealed class DataStorage
     private static DataStorage? _instance;
 
     private readonly string _filePath;
-    private readonly JsonSerializerOptions _jsonOptions;
+    private readonly ISerialization _serialization;
 
     private DataStorage()
+        : this(new JsonSerialization())
+    {
+    }
+
+    private DataStorage(ISerialization serialization)
     {
         _filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "data.json");
-        _jsonOptions = new JsonSerializerOptions();
-        _jsonOptions.WriteIndented = true;
+        _serialization = serialization;
     }
 
     public static DataStorage Instance
@@ -45,7 +48,7 @@ public sealed class DataStorage
     public void SaveData()
     {
         List<Project> projects = SystemContext.Instance.ListProjects();
-        string json = JsonSerializer.Serialize(projects, _jsonOptions);
+        string json = _serialization.Serialize(projects);
         File.WriteAllText(_filePath, json);
     }
 
@@ -67,7 +70,7 @@ public sealed class DataStorage
 
         try
         {
-            List<Project>? projects = JsonSerializer.Deserialize<List<Project>>(json, _jsonOptions);
+            List<Project>? projects = _serialization.Deserialize<List<Project>>(json);
 
             if (projects == null)
             {
